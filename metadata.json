@@ -1,0 +1,5 @@
+{
+  "name": "Vector MAC Visualizer",
+  "description": "Interactive visualization of Matrix-Vector Multiplication on vector hardware. Select output ranges to see how vector MAC operations are scheduled.",
+  "requestFramePermissions": []
+}
