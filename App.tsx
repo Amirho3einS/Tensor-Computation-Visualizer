@@ -301,10 +301,10 @@ const App: React.FC = () => {
               <button
                 onClick={regenerateData}
                 className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg text-xs text-gray-300 transition-colors"
-                title="Generate new random tensor values"
+                title="Regenerate random tensor values"
               >
                 <RefreshCw size={14} />
-                <span className="hidden sm:inline">New Data</span>
+                <span className="hidden sm:inline">Refresh Data</span>
               </button>
             </div>
           </div>

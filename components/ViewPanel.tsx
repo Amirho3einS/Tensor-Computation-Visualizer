@@ -21,50 +21,45 @@ type ViewMode = 'logical' | 'hardware';
 
 /**
  * Transpose a flat tensor data array according to index reordering
- * oldIndices: original index order e.g. ['i', 'k']
- * newIndices: new index order e.g. ['k', 'i']
+ * sourceIndices: source index order e.g. ['i', 'k']
+ * targetIndices: target index order e.g. ['k', 'i']
  * sizes: dimension sizes
  */
 function transposeTensorData(
     data: TensorData,
-    oldIndices: string[],
-    newIndices: string[],
+    sourceIndices: string[],
+    targetIndices: string[],
     sizes: DimensionSizes
 ): TensorData {
     if (!data || data.length === 0) return data;
-    if (JSON.stringify(oldIndices) === JSON.stringify(newIndices)) return data;
+    if (JSON.stringify(sourceIndices) === JSON.stringify(targetIndices)) return data;
 
-    const oldShape = oldIndices.map(idx => sizes[idx] || 4);
-    const newShape = newIndices.map(idx => sizes[idx] || 4);
-    const totalSize = oldShape.reduce((a, b) => a * b, 1);
+    const sourceShape = sourceIndices.map(idx => sizes[idx] || 4);
+    const targetShape = targetIndices.map(idx => sizes[idx] || 4);
+    const totalSize = sourceShape.reduce((a, b) => a * b, 1);
 
-    // Create mapping from old index positions to new index positions
-    const permutation = newIndices.map(idx => oldIndices.indexOf(idx));
+    const permutation = targetIndices.map(idx => sourceIndices.indexOf(idx));
 
     const result = new Array(totalSize).fill(0);
 
-    // For each element in the old tensor
-    for (let flatIdx = 0; flatIdx < totalSize; flatIdx++) {
-        // Convert flat index to multi-dimensional indices in old order
-        const oldMultiIdx: number[] = [];
-        let remaining = flatIdx;
-        for (let d = oldShape.length - 1; d >= 0; d--) {
-            oldMultiIdx[d] = remaining % oldShape[d];
-            remaining = Math.floor(remaining / oldShape[d]);
+    for (let sourceFlatIdx = 0; sourceFlatIdx < totalSize; sourceFlatIdx++) {
+        const sourceMultiIdx: number[] = [];
+        let remaining = sourceFlatIdx;
+        for (let d = sourceShape.length - 1; d >= 0; d--) {
+            sourceMultiIdx[d] = remaining % sourceShape[d];
+            remaining = Math.floor(remaining / sourceShape[d]);
         }
 
-        // Permute to new order
-        const newMultiIdx = permutation.map(p => oldMultiIdx[p]);
+        const targetMultiIdx = permutation.map(p => sourceMultiIdx[p]);
 
-        // Convert new multi-dimensional indices to flat index
-        let newFlatIdx = 0;
+        let targetFlatIdx = 0;
         let multiplier = 1;
-        for (let d = newShape.length - 1; d >= 0; d--) {
-            newFlatIdx += newMultiIdx[d] * multiplier;
-            multiplier *= newShape[d];
+        for (let d = targetShape.length - 1; d >= 0; d--) {
+            targetFlatIdx += targetMultiIdx[d] * multiplier;
+            multiplier *= targetShape[d];
         }
 
-        result[newFlatIdx] = data[flatIdx];
+        result[targetFlatIdx] = data[sourceFlatIdx];
     }
 
     return result;
@@ -74,13 +69,12 @@ function transposeTensorData(
  * Get PyTorch-style permutation string
  * e.g., [i,k] -> [k,i] becomes ".permute(1,0)"
  */
-function getPermutationString(oldIndices: string[], newIndices: string[]): string {
-    if (JSON.stringify(oldIndices) === JSON.stringify(newIndices)) {
+function getPermutationString(sourceIndices: string[], targetIndices: string[]): string {
+    if (JSON.stringify(sourceIndices) === JSON.stringify(targetIndices)) {
         return '';
     }
 
-    // For each position in the new indices, find where it came from in old indices
-    const permutation = newIndices.map(idx => oldIndices.indexOf(idx));
+    const permutation = targetIndices.map(idx => sourceIndices.indexOf(idx));
     return `.permute(${permutation.join(',')})`;
 }
 

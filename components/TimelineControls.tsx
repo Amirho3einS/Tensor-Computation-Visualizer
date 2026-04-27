@@ -29,7 +29,7 @@ const TimelineControls: React.FC<TimelineControlsProps> = ({
         } else {
             // Default behavior: go to start and play
             onStepChange(0);
-            // Small delay to ensure state updates before playing
+            // Let React state settle, then start playback
             setTimeout(() => onPlayPause(), 50);
         }
     };

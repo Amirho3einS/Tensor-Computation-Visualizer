@@ -1,5 +1,5 @@
 {
-  "name": "Vector MAC Visualizer",
-  "description": "Interactive visualization of Matrix-Vector Multiplication on vector hardware. Select output ranges to see how vector MAC operations are scheduled.",
+  "name": "Tensor Contraction Visualizer",
+  "description": "Interactive visualization of einsum tensor contractions, vectorization choices, tensor layouts, and step-by-step output verification.",
   "requestFramePermissions": []
 }

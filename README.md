@@ -1,20 +1,29 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Tensor Contraction Visualizer
 
-# Run and deploy your AI Studio app
+An interactive browser app for exploring tensor contractions written as einsum expressions. It parses contractions such as `ik,kj->ij`, displays the input and output tensors, and animates the vectorized execution step by step.
 
-This contains everything you need to run your app locally.
+The visualizer helps inspect:
 
-View your app in AI Studio: https://ai.studio/apps/drive/1tEr6-Y5KDkbTc_MStlFWgZA8J-TtU7xs
+* valid output dimensions for vectorization
+* tensor lanes, scalar broadcasts, and output accumulation
+* hardware-oriented tensor layouts and required transposes
+* scalar loop nests alongside vectorized loop nests
+* computed output values against the expected contraction result
 
 ## Run Locally
 
-**Prerequisites:**  Node.js
-
+**Prerequisite:** Node.js
 
 1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+
+   ```bash
+   npm install
+   ```
+
+2. Start the development server:
+
+   ```bash
+   npm run dev
+   ```
+
+3. Open the local URL printed by Vite.

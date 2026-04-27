@@ -46,7 +46,7 @@ export interface AppState {
   currentStepIndex: number;
 }
 
-// ============ NEW: Tensor Data Types for Checking ============
+// Tensor data for output verification
 
 export type TensorData = number[];  // Flat array, row-major order
 
