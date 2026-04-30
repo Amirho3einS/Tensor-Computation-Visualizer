@@ -370,44 +370,104 @@ export function generateLayerSteps(layerIdx: number, rt: LayerRuntime): LayerSte
   if (spec.kind === 'linear') {
     const [B, Din] = rt.inputShape;
     const [, Dout] = rt.outputShape;
-    const sizesFwd: DimensionSizes = { b: B, i: Din, o: Dout };
-    const forward = generateLinearStepsFromEinsum(
-      'bi,oi->bo',
-      sizesFwd,
-      layerIdx,
-      'forward',
-      undefined,
-      { A: 'X', B: 'W', Y: 'Y' }
-    );
+    // Linear forward visualization policy:
+    // one step per output element, highlighting full input/weight vectors.
+    const forward: OperationStep[] = [];
+    let id = 0;
+    for (let b = 0; b < B; b++) {
+      for (let o = 0; o < Dout; o++) {
+        forward.push(
+          withMeta(
+            {
+              id: id++,
+              description: `Linear forward: compute Y[${b},${o}] from full dot product`,
+              formula: `Y[${b},${o}] = b[${o}] + sum_i X[${b},i] * W[${o},i]`,
+              highlights: {
+                X: { indices: { b, i: [0, Din - 1] }, type: 'vector' },
+                W: { indices: { o, i: [0, Din - 1] }, type: 'vector' },
+                bias: { indices: { o }, type: 'scalar-broadcast' },
+                Y: { indices: { b, o }, type: 'output' },
+              },
+            },
+            layerIdx,
+            'forward',
+            undefined
+          )
+        );
+      }
+    }
 
-    const dW = generateLinearStepsFromEinsum(
-      'bo,bi->oi',
-      { b: B, o: Dout, i: Din },
-      layerIdx,
-      'backward',
-      'dW',
-      { A: 'dY', B: 'X', Y: 'dW' }
-    );
+    const dW: OperationStep[] = [];
+    id = 0;
+    for (let o = 0; o < Dout; o++) {
+      dW.push(
+        withMeta(
+          {
+            id: id++,
+            description: `Linear backward dW: compute row dW[${o},:]`,
+            formula: `dW[${o},i] = sum_b dY[b,${o}] * X[b,i]`,
+            highlights: {
+              dY: { indices: { b: [0, B - 1], o }, type: 'vector' },
+              X: { indices: { b: [0, B - 1], i: [0, Din - 1] }, type: 'vector' },
+              dW: { indices: { o, i: [0, Din - 1] }, type: 'output' },
+            },
+          },
+          layerIdx,
+          'backward',
+          'dW'
+        )
+      );
+    }
 
-    const dX = generateLinearStepsFromEinsum(
-      'bo,oi->bi',
-      { b: B, o: Dout, i: Din },
-      layerIdx,
-      'backward',
-      'dX',
-      { A: 'dY', B: 'W', Y: 'dX' }
-    );
+    const dX: OperationStep[] = [];
+    id = 0;
+    for (let b = 0; b < B; b++) {
+      for (let i = 0; i < Din; i++) {
+        dX.push(
+          withMeta(
+            {
+              id: id++,
+              description: `Linear backward dX: compute dX[${b},${i}]`,
+              formula: `dX[${b},${i}] = sum_o dY[${b},o] * W[o,${i}]`,
+              highlights: {
+                dY: { indices: { b, o: [0, Dout - 1] }, type: 'vector' },
+                W: { indices: { o: [0, Dout - 1], i }, type: 'vector' },
+                dX: { indices: { b, i }, type: 'output' },
+              },
+            },
+            layerIdx,
+            'backward',
+            'dX'
+          )
+        );
+      }
+    }
 
-    const db = generateLinearStepsFromEinsum(
-      'bo->o',
-      { b: B, o: Dout },
-      layerIdx,
-      'backward',
-      'db',
-      { A: 'dY', Y: 'db' }
-    );
+    const db: OperationStep[] = [];
+    id = 0;
+    for (let o = 0; o < Dout; o++) {
+      db.push(
+        withMeta(
+          {
+            id: id++,
+            description: `Linear backward db: compute db[${o}]`,
+            formula: `db[${o}] = sum_b dY[b,${o}]`,
+            highlights: {
+              dY: { indices: { b: [0, B - 1], o }, type: 'vector' },
+              db: { indices: { o }, type: 'output' },
+            },
+          },
+          layerIdx,
+          'backward',
+          'db'
+        )
+      );
+    }
 
-    return { forward, backward: { dX, dW, db } };
+    return {
+      forward: renumberSteps(forward),
+      backward: { dX: renumberSteps(dX), dW: renumberSteps(dW), db: renumberSteps(db) },
+    };
   }
 
   if (spec.kind === 'relu') {

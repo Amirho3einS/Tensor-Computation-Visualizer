@@ -23,16 +23,37 @@ export function getTensorSize(shape: number[]): number {
 }
 
 /**
- * Generate random tensor data with integer values for easier visualization
+ * Generate random tensor data.
+ * Default policy keeps magnitudes small for readable forward/backward values.
  */
-export function generateRandomTensor(shape: number[], maxValue: number = 9): TensorData {
+export function generateRandomTensor(
+    shape: number[],
+    maxValue: number = 0.25,
+    minValue: number = -0.25
+): TensorData {
     const size = getTensorSize(shape);
     const data: TensorData = [];
+    const lo = Math.min(minValue, maxValue);
+    const hi = Math.max(minValue, maxValue);
     for (let i = 0; i < size; i++) {
-        // Use integers 1-9 for easier mental verification
-        data.push(Math.floor(Math.random() * maxValue) + 1);
+        const v = lo + Math.random() * (hi - lo);
+        // Keep a stable precision to avoid noisy long decimals.
+        data.push(Number(v.toFixed(4)));
     }
     return data;
+}
+
+/**
+ * Format tensor values for compact display.
+ * - |x| < 1e3 => fixed with 2 decimals
+ * - otherwise => scientific with 2 significant decimals
+ */
+export function formatTensorValue(value: number): string {
+    if (!Number.isFinite(value)) return 'NaN';
+    const abs = Math.abs(value);
+    if (abs === 0) return '0.00';
+    if (abs < 1e3) return value.toFixed(2);
+    return value.toExponential(2);
 }
 
 /**

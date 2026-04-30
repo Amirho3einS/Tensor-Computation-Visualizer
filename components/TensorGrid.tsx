@@ -1,7 +1,7 @@
 import React from 'react';
 import { TensorSpec, DimensionSizes, OperationStep, TensorData } from '../types';
 import { Maximize2, Check, X as XIcon } from 'lucide-react';
-import { getFlatIndex } from '../utils/tensorData';
+import { getFlatIndex, formatTensorValue } from '../utils/tensorData';
 import Tensor3DView from './Tensor3DView';
 
 interface TensorGridProps {
@@ -281,7 +281,7 @@ const TensorGrid: React.FC<TensorGridProps> = ({
                             <>
                                 {/* Value */}
                                 <span className="text-sm font-bold leading-none">
-                                    {showValues && value !== null ? value : '–'}
+                                    {showValues && value !== null ? formatTensorValue(value) : '–'}
                                 </span>
                                 {/* Index label */}
                                 <span className="text-[7px] text-gray-500 mt-0.5 leading-none">

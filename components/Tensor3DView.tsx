@@ -1,7 +1,7 @@
 import React, { useState, useRef, useCallback, useMemo } from 'react';
 import { TensorSpec, DimensionSizes, OperationStep, TensorData } from '../types';
 import { Maximize2, Check, X as XIcon, RotateCcw } from 'lucide-react';
-import { getFlatIndex } from '../utils/tensorData';
+import { getFlatIndex, formatTensorValue } from '../utils/tensorData';
 
 interface Tensor3DViewProps {
     tensor: TensorSpec;
@@ -207,7 +207,7 @@ const Tensor3DView: React.FC<Tensor3DViewProps> = ({
                             ) : (
                                 <>
                                     <span className="text-[10px] font-bold leading-none">
-                                        {showValues && value !== null ? value : '–'}
+                                        {showValues && value !== null ? formatTensorValue(value) : '–'}
                                     </span>
                                     <span className="text-[6px] opacity-50 mt-0.5 leading-none">
                                         [{indexValues.join(',')}]

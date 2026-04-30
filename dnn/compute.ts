@@ -7,6 +7,10 @@ import {
 import type { ForwardBackwardResult, LayerCache, LayerRuntime, LayerSpec, NetworkSpec } from './types';
 
 // --- flat index helpers (row-major, last dim fastest) ---
+const DNN_WEIGHT_INIT_MIN = -0.35;
+const DNN_WEIGHT_INIT_MAX = 0.35;
+const DNN_BIAS_INIT_MIN = 0.05;
+const DNN_BIAS_INIT_MAX = 0.20;
 
 export function flat3(b: number, c: number, l: number, B: number, C: number, L: number): number {
   return ((b * C + c) * L + l);
@@ -38,6 +42,14 @@ export function flat2(b: number, i: number, I: number): number {
 
 export function flat2W(o: number, i: number, Din: number): number {
   return o * Din + i;
+}
+
+function generateWeights(shape: number[]): TensorData {
+  return generateRandomTensor(shape, DNN_WEIGHT_INIT_MAX, DNN_WEIGHT_INIT_MIN);
+}
+
+function generatePositiveBias(size: number): TensorData {
+  return generateRandomTensor([size], DNN_BIAS_INIT_MAX, DNN_BIAS_INIT_MIN);
 }
 
 export function outputShapeFor(spec: LayerSpec, inShape: number[]): number[] {
@@ -129,20 +141,20 @@ export function buildRuntimes(spec: NetworkSpec): LayerRuntime[] {
       const [, Cin, Lin] = inputShape;
       const K = layerSpec.kernelSize;
       const Cout = layerSpec.outChannels;
-      rt.weights = generateRandomTensor([Cout, Cin, K]);
-      rt.bias = generateRandomTensor([Cout]);
+      rt.weights = generateWeights([Cout, Cin, K]);
+      rt.bias = generatePositiveBias(Cout);
     } else if (layerSpec.kind === 'conv2d') {
       const [, Cin] = inputShape;
       const Kh = layerSpec.kernelH;
       const Kw = layerSpec.kernelW;
       const Cout = layerSpec.outChannels;
-      rt.weights = generateRandomTensor([Cout, Cin, Kh, Kw]);
-      rt.bias = generateRandomTensor([Cout]);
+      rt.weights = generateWeights([Cout, Cin, Kh, Kw]);
+      rt.bias = generatePositiveBias(Cout);
     } else if (layerSpec.kind === 'linear') {
       const Din = inputShape[1];
       const Dout = layerSpec.outFeatures;
-      rt.weights = generateRandomTensor([Dout, Din]);
-      rt.bias = generateRandomTensor([Dout]);
+      rt.weights = generateWeights([Dout, Din]);
+      rt.bias = generatePositiveBias(Dout);
     }
     runtimes.push(rt);
     shape = outputShape;
