@@ -75,8 +75,11 @@ const Tensor3DView: React.FC<Tensor3DViewProps> = ({
     const getVerificationStatus = (indexValues: number[]): 'match' | 'mismatch' | null => {
         if (!computedData || !expectedData) return null;
         const flatIdx = getFlatIndex(shape, indexValues);
-        const computed = computedData[flatIdx] ?? 0;
-        const expected = expectedData[flatIdx] ?? 0;
+        const computedRaw = computedData[flatIdx];
+        const expectedRaw = expectedData[flatIdx];
+        if (!Number.isFinite(computedRaw) || !Number.isFinite(expectedRaw)) return null;
+        const computed = computedRaw as number;
+        const expected = expectedRaw as number;
         return Math.abs(computed - expected) < 0.001 ? 'match' : 'mismatch';
     };
 

@@ -5,6 +5,7 @@ import TensorGrid from '../TensorGrid';
 import TimelineControls from '../TimelineControls';
 import { applyDimensionSizes } from '../../utils/einsumParser';
 import { dimensionSizesForTensor, tensorSpecForName } from '../../dnn/stepGenerator';
+import { getFlatIndex } from '../../utils/tensorData';
 
 function getTensorNames(
   rt: LayerRuntime,
@@ -65,6 +66,50 @@ function getTensorData(
     default:
       return null;
   }
+}
+
+function buildProgressiveComputedData(
+  name: string,
+  steps: OperationStep[],
+  currentStepIndex: number,
+  tensorIndices: string[],
+  sizes: Record<string, number>,
+  expectedData: number[]
+): number[] {
+  const shape = tensorIndices.map(idx => sizes[idx] || 1);
+  const computed = new Array(expectedData.length).fill(Number.NaN);
+  const last = Math.min(currentStepIndex, steps.length - 1);
+  if (last < 0) return computed;
+
+  const visit = (dim: number, acc: number[], valuesByDim: number[][]) => {
+    if (dim === valuesByDim.length) {
+      const flat = getFlatIndex(shape, acc);
+      computed[flat] = expectedData[flat];
+      return;
+    }
+    for (const v of valuesByDim[dim]) {
+      visit(dim + 1, [...acc, v], valuesByDim);
+    }
+  };
+
+  for (let s = 0; s <= last; s++) {
+    const highlight = steps[s]?.highlights?.[name];
+    if (!highlight) continue;
+    const valuesByDim = tensorIndices.map(idx => {
+      const h = highlight.indices[idx];
+      if (Array.isArray(h)) {
+        const vals: number[] = [];
+        for (let v = h[0]; v <= h[1]; v++) vals.push(v);
+        return vals;
+      }
+      if (typeof h === 'number') return [h];
+      return [];
+    });
+    if (valuesByDim.some(v => v.length === 0)) continue;
+    visit(0, [], valuesByDim);
+  }
+
+  return computed;
 }
 
 export interface LayerViewProps {
@@ -220,10 +265,14 @@ const LayerView: React.FC<LayerViewProps> = ({
     const data = getTensorData(name, selectedLayerIdx, fb);
     if (!meta || !sizes || !data) return null;
     const tensor: TensorSpec = { name: meta.name, indices: meta.indices, shape: [] };
-    const isOutput =
-      (phase === 'forward' && name === 'Y') ||
-      (phase === 'backward' && (name === 'dW' || name === 'dX' || name === 'db'));
     const hl = currentStep?.highlights[name] ?? null;
+    const isStepOutput =
+      (phase === 'forward' && name === 'Y') ||
+      (phase === 'backward' && (name === 'dX' || name === 'dW' || name === 'db'));
+    const progressiveComputed =
+      isStepOutput && steps.length > 0
+        ? buildProgressiveComputedData(name, steps, currentStepIndex, meta.indices, sizes, data)
+        : null;
     return (
       <TensorGrid
         key={name}
@@ -231,9 +280,9 @@ const LayerView: React.FC<LayerViewProps> = ({
         sizes={sizes}
         highlight={hl}
         label={name}
-        data={isOutput ? null : data}
-        computedData={isOutput ? data : null}
-        expectedData={isOutput ? data : null}
+        data={isStepOutput ? null : data}
+        computedData={progressiveComputed}
+        expectedData={isStepOutput ? data : null}
         showValues
       />
     );
