@@ -23,6 +23,13 @@ export interface DimensionSizes {
   [index: string]: number;        // Maps index letter to size, e.g., { i: 4, j: 8, k: 16 }
 }
 
+/** Optional metadata when a step is used by the DNN visualizer */
+export interface DNNStepMeta {
+  layerIdx: number;
+  phase: 'forward' | 'backward';
+  subPhase?: 'dX' | 'dW' | 'db';
+}
+
 export interface OperationStep {
   id: number;
   description: string;
@@ -35,6 +42,7 @@ export interface OperationStep {
       type: 'vector' | 'scalar-broadcast' | 'output';
     };
   };
+  dnnMeta?: DNNStepMeta;
 }
 
 export interface AppState {

@@ -229,7 +229,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="h-screen w-full flex flex-col bg-gray-950 text-white overflow-hidden font-sans">
+    <div className="h-full min-h-0 w-full flex flex-col bg-gray-950 text-white overflow-hidden font-sans">
 
       {/* Header */}
       <header className="flex flex-col sm:flex-row sm:items-center justify-between px-4 sm:px-6 py-3 bg-gray-900/80 backdrop-blur border-b border-gray-800 shrink-0 gap-3 relative z-50">
