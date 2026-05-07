@@ -172,3 +172,55 @@ button:focus-visible {
     gap: 1px;
   }
 }
+
+/* Day mode override: lightweight bright theme for presentation */
+.day-mode {
+  background: #ffffff;
+  color: #111827;
+}
+
+.day-mode [class*="bg-gray-950"] {
+  background-color: #ffffff !important;
+}
+
+.day-mode [class*="bg-gray-900"] {
+  background-color: #f8fafc !important;
+}
+
+.day-mode [class*="bg-gray-800"] {
+  background-color: #eef2f7 !important;
+}
+
+.day-mode [class*="bg-gray-700"] {
+  background-color: #e5e7eb !important;
+}
+
+.day-mode [class*="text-white"] {
+  color: #111827 !important;
+}
+
+.day-mode [class*="text-gray-100"],
+.day-mode [class*="text-gray-200"],
+.day-mode [class*="text-gray-300"] {
+  color: #1f2937 !important;
+}
+
+.day-mode [class*="text-gray-400"],
+.day-mode [class*="text-gray-500"],
+.day-mode [class*="text-gray-600"] {
+  color: #4b5563 !important;
+}
+
+.day-mode [class*="border-gray-700"],
+.day-mode [class*="border-gray-800"] {
+  border-color: #d1d5db !important;
+}
+
+/* Day-mode accent tuning for network graph readability */
+.day-mode .network-graph [class*="text-sky-"] {
+  color: #0369a1 !important; /* darker sky blue */
+}
+
+.day-mode .network-graph [class*="text-amber-"] {
+  color: #b45309 !important; /* darker amber/orange */
+}

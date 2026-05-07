@@ -1,7 +1,7 @@
 import React from 'react';
 import type { LayerRuntime } from '../../dnn/types';
 import type { OperationStep } from '../../types';
-import { ArrowRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 export interface NetworkDiagramProps {
   runtimes: LayerRuntime[];
@@ -29,7 +29,7 @@ const NetworkDiagram: React.FC<NetworkDiagramProps> = ({
   const pulseIdx = currentStep?.dnnMeta?.layerIdx;
 
   return (
-    <div className="px-4 py-4 bg-gray-900/40 border-b border-gray-800/50 overflow-x-auto">
+    <div className="network-graph px-4 py-4 bg-gray-900/40 border-b border-gray-800/50 overflow-x-auto">
       <div className="text-[10px] uppercase tracking-wide text-gray-500 font-semibold mb-3">Network graph</div>
 
       <div className="flex flex-col gap-6 min-w-max">
@@ -93,7 +93,7 @@ const NetworkDiagram: React.FC<NetworkDiagramProps> = ({
             </button>
             {runtimes.map((rt, i) => (
               <React.Fragment key={`g-${i}`}>
-                <ArrowRight size={16} className="text-amber-700/70 shrink-0" />
+                <ArrowLeft size={16} className="text-amber-700/70 shrink-0" />
                 <button
                   type="button"
                   onClick={() => onSelectLayer(i)}
